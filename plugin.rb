@@ -22,7 +22,7 @@ class Auth::OpenIdConnectAuthenticator < Auth::Authenticator
 
     def after_authenticate(auth_token)
         
-        logger.debug "Auth::OpenIdConnectAuthenticator :: after_authenticate"
+        Rails.logger.debug "Auth::OpenIdConnectAuthenticator :: after_authenticate"
         
         result = Auth::Result.new
 
@@ -58,7 +58,7 @@ class Auth::OpenIdConnectAuthenticator < Auth::Authenticator
 
     def after_create_account(user, auth)
         
-        logger.debug "Auth::OpenIdConnectAuthenticator :: after_create_account"
+        Rails.logger.debug "Auth::OpenIdConnectAuthenticator :: after_create_account"
         
         data = auth[:extra_data]
         UserOpenId.create(
@@ -73,7 +73,7 @@ class Auth::OpenIdConnectAuthenticator < Auth::Authenticator
 
     def register_middleware(omniauth)
         
-        logger.debug "Auth::OpenIdConnectAuthenticator :: register_middleware"
+        Rails.logger.debug "Auth::OpenIdConnectAuthenticator :: register_middleware"
         
         omniauth.provider :openid_connect,
                       :setup => lambda { |env|
@@ -99,7 +99,7 @@ end
 class OpenIDConnectBasicAuthenticator < ::Auth::OpenIdConnectAuthenticator
     def register_middleware(omniauth)
         
-        logger.debug "OpenIDConnectBasicAuthenticator :: register_middleware"
+        Rails.logger.debug "OpenIDConnectBasicAuthenticator :: register_middleware"
         
         omniauth.provider :openid_connect,
             name: 'oidc_basic',
@@ -127,7 +127,7 @@ class OpenIDConnectBasicAuthenticator < ::Auth::OpenIdConnectAuthenticator
 
     def walk_path(fragment, segments)
         
-        logger.debug "OpenIDConnectBasicAuthenticator :: walk_path"
+        Rails.logger.debug "OpenIDConnectBasicAuthenticator :: walk_path"
         
         first_seg = segments[0]
         return if first_seg.blank? || fragment.blank?
@@ -139,7 +139,7 @@ class OpenIDConnectBasicAuthenticator < ::Auth::OpenIdConnectAuthenticator
 
     def json_walk(result, user_json, prop)
         
-        logger.debug "OpenIDConnectBasicAuthenticator :: json_walk"
+        Rails.logger.debug "OpenIDConnectBasicAuthenticator :: json_walk"
         
         path = SiteSetting.send("oidc_json_#{prop}_path")
         if path.present?
@@ -155,7 +155,7 @@ class OpenIDConnectBasicAuthenticator < ::Auth::OpenIdConnectAuthenticator
 
     def fetch_user_details(token, id)
         
-        logger.debug "OpenIDConnectBasicAuthenticator :: fetch_user_details"
+        Rails.logger.debug "OpenIDConnectBasicAuthenticator :: fetch_user_details"
         
         user_json_url = SiteSetting.oidc_user_json_url.sub(':token', token.to_s).sub(':id', id.to_s)
 
@@ -179,7 +179,7 @@ class OpenIDConnectBasicAuthenticator < ::Auth::OpenIdConnectAuthenticator
     def after_authenticate(auth)
         log("after_authenticate response: \n\ncreds: #{auth['credentials'].to_hash}\ninfo: #{auth['info'].to_hash}\nextra: #{auth['extra'].to_hash}")
 
-        logger.debug "OpenIDConnectBasicAuthenticator :: after_authenticate"
+        Rails.logger.debug "OpenIDConnectBasicAuthenticator :: after_authenticate"
         
         result = Auth::Result.new
         token = auth['credentials']['token']
@@ -206,7 +206,7 @@ class OpenIDConnectBasicAuthenticator < ::Auth::OpenIdConnectAuthenticator
 
     def after_create_account(user, auth)
         
-        logger.debug "OpenIDConnectBasicAuthenticator :: after_create_account"
+        Rails.logger.debug "OpenIDConnectBasicAuthenticator :: after_create_account"
         
         ::PluginStore.set("oidc_basic", "oidc_basic_user_#{auth[:extra_data][:oidc_basic_user_id]}", {user_id: user.id })
     end
