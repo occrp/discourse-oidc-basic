@@ -1,22 +1,23 @@
 login:
-  oauth2_enabled:
+  oidc_enabled:
     default: false
     client: true
-  oauth2_client_id: ''
-  oauth2_client_secret: ''
-  oauth2_authorize_url: ''
-  oauth2_token_url: ''
-  oauth2_user_json_url: ''
-  oauth2_json_user_id_path: ''
-  oauth2_json_username_path: ''
-  oauth2_json_name_path: ''
-  oauth2_json_email_path: ''
-  oauth2_email_verified: false
-  oauth2_send_auth_header: true
-  oauth2_debug_auth: false
-  oauth2_authorize_options:
+  oidc_client_id: ''
+  oidc_client_secret: ''
+  oidc_authorize_url: ''
+  oidc_token_url: ''
+  oidc_user_json_url: ''
+  oidc_json_user_id_path: ''
+  oidc_json_username_path: ''
+  oidc_json_name_path: ''
+  oidc_json_email_path: ''
+  oidc_json_groups_path: ''
+  oidc_email_verified: false
+  oidc_send_auth_header: true
+  oidc_debug_auth: false
+  oidc_authorize_options:
     default: 'scope'
     type: list
-  oauth2_button_title:
+  oidc_button_title:
     default: 'with OAuth2'
     client: true

@@ -1,17 +1,18 @@
 en:
   site_settings:
-    oauth2_enabled: "Custom OAuth2 is enabled"
-    oauth2_client_id: 'Client ID for custom OAuth2'
-    oauth2_client_secret: 'Client Secret for custom OAuth2'
-    oauth2_authorize_url: 'Authorization URL for OAuth2'
-    oauth2_token_url: 'Token URL for OAuth2'
-    oauth2_user_json_url: 'URL to fetch user JSON for OAuth2 (note we replace :id with the id returned by OAuth call and :token with the token id)'
-    oauth2_json_user_id_path: 'Path in the OAuth2 User JSON to the user id. eg: user.id'
-    oauth2_json_username_path: 'Path in the OAuth2 User JSON to the username. eg: user.username'
-    oauth2_json_name_path: "Path in the OAuth2 User JSON to the user's full: user.name.full"
-    oauth2_json_email_path: "Path in the OAuth2 User JSON to the user's email: user.email.primary"
-    oauth2_email_verified: "Check this if the OAuth2 site has verified the email"
-    oauth2_send_auth_header: "Send the token as an HTTP Authorization header"
-    oauth2_debug_auth: "Include rich debugging information in your logs"
-    oauth2_authorize_options: "When authorizing request these options"
+    oidc_enabled: "Custom OpenID Connect is enabled"
+    oidc_client_id: 'Client ID for custom OpenID Connect'
+    oidc_client_secret: 'Client Secret for custom OpenID Connect'
+    oidc_authorize_url: 'Authorization URL for OpenID Connect'
+    oidc_token_url: 'Token URL for OpenID Connect'
+    oidc_user_json_url: 'URL to fetch user JSON for OpenID Connect (note we replace :id with the id returned by OAuth call and :token with the token id)'
+    oidc_json_user_id_path: 'Path in the OpenID Connect User JSON to the user id. eg: user.id'
+    oidc_json_username_path: 'Path in the OpenID Connect User JSON to the username. eg: user.username'
+    oidc_json_name_path: "Path in the OpenID Connect User JSON to the user's full: user.name.full"
+    oidc_json_email_path: "Path in the OpenID Connect User JSON to the user's email: user.email.primary"
+    oidc_json_groups_path: "Path in the OpenID Connect Access Token to the user's group membership information (note we replace :client_id with the OIDC client id); examples: realm_access.roles, resource_access.:client_id.roles"
+    oidc_email_verified: "Check this if the OpenID Connect site has verified the email"
+    oidc_send_auth_header: "Send the token as an HTTP Authorization header"
+    oidc_debug_auth: "Include rich debugging information in your logs"
+    oidc_authorize_options: "When authorizing request these options (scope)"
 
