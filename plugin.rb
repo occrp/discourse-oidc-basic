@@ -15,9 +15,6 @@ class Auth::OpenIdConnectAuthenticator < Auth::Authenticator
     attr_reader :name, :identifier
 
     def initialize(name, identifier, opts = {})
-        
-        Rails.logger.debug "Auth::OpenIdConnectAuthenticator :: initialize"
-        
         @name = name
         @identifier = identifier
         @opts = opts
