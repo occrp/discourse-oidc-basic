@@ -15,6 +15,9 @@ class Auth::OpenIdConnectAuthenticator < Auth::Authenticator
     attr_reader :name, :identifier
 
     def initialize(name, identifier, opts = {})
+        
+        Rails.logger.debug "Auth::OpenIdConnectAuthenticator :: initialize"
+        
         @name = name
         @identifier = identifier
         @opts = opts
@@ -97,6 +100,7 @@ class ::OmniAuth::Strategies::OpenIDConnectBasic < ::OmniAuth::Strategies::OpenI
 end
 
 class OpenIDConnectBasicAuthenticator < ::Auth::OpenIdConnectAuthenticator
+    
     def register_middleware(omniauth)
         
         Rails.logger.debug "OpenIDConnectBasicAuthenticator :: register_middleware"
