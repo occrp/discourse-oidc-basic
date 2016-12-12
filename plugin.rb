@@ -90,22 +90,24 @@ end
 class OpenIDConnectBasicAuthenticator < ::Auth::OpenIdConnectAuthenticator
     def register_middleware(omniauth)
         omniauth.provider :openid_connect,
-                                            name: 'oidc_basic',
-                                            setup: lambda {|env|
-                                                opts = env['omniauth.strategy'].options
-                                                opts[:client_id] = SiteSetting.oidc_client_id
-                                                opts[:client_secret] = SiteSetting.oidc_client_secret
-                                                opts[:provider_ignores_state] = true
-                                                opts[:client_options] = {
-                                                    authorize_url: SiteSetting.oidc_authorize_url,
-                                                    token_url: SiteSetting.oidc_token_url
-                                                }
-                                                opts[:authorize_options] = SiteSetting.oidc_authorize_options.split("|").map(&:to_sym)
+            name: 'oidc_basic',
+            response_type: :code,
+            scope: [:openid, :email, :profile, :address],
+            setup: lambda {|env|
+                opts = env['omniauth.strategy'].options
+                opts[:identifier] = SiteSetting.oidc_client_id
+                opts[:secret] = SiteSetting.oidc_client_secret
+                opts[:provider_ignores_state] = true
+                opts[:client_options] = {
+                    authorize_url: SiteSetting.oidc_authorize_url,
+                    token_url: SiteSetting.oidc_token_url
+                }
+                opts[:authorize_options] = SiteSetting.oidc_authorize_options.split("|").map(&:to_sym)
 
-                                                if SiteSetting.oidc_send_auth_header?
-                                                    opts[:token_params] = {headers: {'Authorization' => basic_auth_header }}
-                                                end
-                                            }
+                if SiteSetting.oidc_send_auth_header?
+                    opts[:token_params] = {headers: {'Authorization' => basic_auth_header }}
+                end
+            }
     end
 
     def basic_auth_header
