@@ -187,7 +187,7 @@ end
 
 auth_provider title_setting: "oidc_button_title",
                             enabled_setting: "oidc_enabled",
-                            authenticator: OpenIDConnectBasicAuthenticator.new('oidc_basic'),
+                            authenticator: OpenIDConnectBasicAuthenticator.new('oidc_basic', 'OpenIDConnectBasic'),
                             message: "OpenID Connect"
 
 register_css <<CSS

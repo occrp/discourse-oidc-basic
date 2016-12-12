@@ -19,5 +19,5 @@ login:
     default: 'scope'
     type: list
   oidc_button_title:
-    default: 'with OAuth2'
+    default: 'with OpenID Connect'
     client: true
