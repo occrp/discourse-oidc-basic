@@ -3,8 +3,9 @@ en:
     oidc_enabled: "Custom OpenID Connect is enabled"
     oidc_client_id: 'Client ID for custom OpenID Connect'
     oidc_client_secret: 'Client Secret for custom OpenID Connect'
-    oidc_authorize_url: 'Authorization URL for OpenID Connect'
-    oidc_token_url: 'Token URL for OpenID Connect'
+    #oidc_authorize_url: 'Authorization URL for OpenID Connect'
+    #oidc_token_url: 'Token URL for OpenID Connect'
+    oidc_issuer_url: 'Issuer URL (".well-known/openid-configuration" will be appended to it to get the configuration JSON)'
     oidc_user_json_url: 'URL to fetch user JSON for OpenID Connect (note we replace :id with the id returned by OAuth call and :token with the token id)'
     oidc_json_user_id_path: 'Path in the OpenID Connect User JSON to the user id. eg: user.id'
     oidc_json_username_path: 'Path in the OpenID Connect User JSON to the username. eg: user.username'

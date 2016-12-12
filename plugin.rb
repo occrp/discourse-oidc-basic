@@ -93,26 +93,25 @@ class OpenIDConnectBasicAuthenticator < ::Auth::OpenIdConnectAuthenticator
             name: 'oidc_basic',
             response_type: :code,
             scope: [:openid, :email, :profile, :address],
-            setup: lambda {|env|
+            client_options: lambda {|env|
                 opts = env['omniauth.strategy'].options
+                opts[:port] = 443
+                opts[:scheme] = "https"
                 opts[:identifier] = SiteSetting.oidc_client_id
                 opts[:secret] = SiteSetting.oidc_client_secret
-                opts[:provider_ignores_state] = true
-                opts[:client_options] = {
-                    authorize_url: SiteSetting.oidc_authorize_url,
-                    token_url: SiteSetting.oidc_token_url
-                }
-                opts[:authorize_options] = SiteSetting.oidc_authorize_options.split("|").map(&:to_sym)
+                opts[:discovery] = true
+                opts[:issuer] = SiteSetting.oidc_issuer_url
+                #opts[:authorize_options] = SiteSetting.oidc_authorize_options.split("|").map(&:to_sym)
 
-                if SiteSetting.oidc_send_auth_header?
-                    opts[:token_params] = {headers: {'Authorization' => basic_auth_header }}
-                end
+                #if SiteSetting.oidc_send_auth_header?
+                #    opts[:token_params] = {headers: {'Authorization' => basic_auth_header }}
+                #end
             }
     end
 
-    def basic_auth_header
-        "Basic " + Base64.strict_encode64("#{SiteSetting.oidc_client_id}:#{SiteSetting.oidc_client_secret}")
-    end
+    #def basic_auth_header
+    #    "Basic " + Base64.strict_encode64("#{SiteSetting.oidc_client_id}:#{SiteSetting.oidc_client_secret}")
+    #end
 
     def walk_path(fragment, segments)
         first_seg = segments[0]

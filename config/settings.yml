@@ -4,8 +4,9 @@ login:
     client: true
   oidc_client_id: ''
   oidc_client_secret: ''
-  oidc_authorize_url: ''
-  oidc_token_url: ''
+  #oidc_authorize_url: ''
+  #oidc_token_url: ''
+  oidc_issuer_url: ''
   oidc_user_json_url: ''
   oidc_json_user_id_path: ''
   oidc_json_username_path: ''
