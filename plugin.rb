@@ -89,7 +89,7 @@ end
 
 class OpenIDConnectBasicAuthenticator < ::Auth::OpenIdConnectAuthenticator
     def register_middleware(omniauth)
-        omniauth.provider :oidc_basic,
+        omniauth.provider :openid_connect,
                                             name: 'oidc_basic',
                                             setup: lambda {|env|
                                                 opts = env['omniauth.strategy'].options
