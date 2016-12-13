@@ -12,14 +12,21 @@ enabled_site_setting :oidc_enabled
 # http://www.rubydoc.info/github/discourse/discourse/Discourse
 #
 
-# class ::OmniAuth::Strategies::OpenIDConnectBasic < ::OmniAuth::Strategies::OpenIDConnect
-#     option :name, "openid_connect"
+class ::OmniAuth::Strategies::OpenIDConnectWithRoles < ::OmniAuth::Strategies::OpenIDConnect
+    option :name, "openid_connect_with_roles"
 #     info do
 #         {
 #             id: access_token['id']
 #         }
 #     end
-# end
+    extra do
+        {
+            raw_attributes: decode_id_token(access_token.access_token).raw_attributes
+        }
+    end
+    
+end
+OmniAuth.config.add_camelization 'openid_connect_with_roles', 'OpenIDConnectWithRoles'
 
 
 # based on:
@@ -102,15 +109,8 @@ class OpenIdConnectAuthenticator < Auth::Authenticator
 #                       :name => name,
 #                       :identifier => identifier,
 #                       :require => "omniauth-openid-connect"
-        
-        Rails.logger.debug "\n\n* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *"
-        Rails.logger.debug Discourse.current_hostname
-        Rails.logger.debug Discourse.base_url
-        Rails.logger.debug Discourse.base_url_no_prefix
-        Rails.logger.debug Discourse.base_uri
-        Rails.logger.debug "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n\n"
 
-        omniauth.provider :openid_connect,
+        omniauth.provider :openid_connect_with_roles,
             name: "openid_connect",
             identifier: "openid_connect",
             setup:   -> (env) {
@@ -139,11 +139,23 @@ class OpenIdConnectAuthenticator < Auth::Authenticator
     def walk_path(fragment, segments)
         
         Rails.logger.debug "OpenIdConnectAuthenticator :: walk_path"
+        Rails.logger.debug "OpenIdConnectAuthenticator :: walk_path :: segments: " + segments.inspect
         
         first_seg = segments[0]
+        Rails.logger.debug "OpenIdConnectAuthenticator :: walk_path :: first_seg: " + first_seg.inspect
         return if first_seg.blank? || fragment.blank?
         return nil unless fragment.is_a?(Hash)
+        
+        # is this a setting we're referencing?
+        if first_seg[0] == ':'
+            # aye, clean it up
+            first_seg.slice! ':'
+            # get it from SiteSettings
+            first_seg = SiteSetting.send("oidc_#{first_seg}")
+        end
+        
         deref = fragment[first_seg] || fragment[first_seg.to_sym]
+        Rails.logger.debug "OpenIdConnectAuthenticator :: walk_path :: deref: " + deref.inspect
 
         return (deref.blank? || segments.size == 1) ? deref : walk_path(deref, segments[1..-1])
     end
@@ -153,10 +165,24 @@ class OpenIdConnectAuthenticator < Auth::Authenticator
         Rails.logger.debug "OpenIdConnectAuthenticator :: json_walk"
         
         path = SiteSetting.send("oidc_json_#{prop}_path")
+        Rails.logger.debug "OpenIdConnectAuthenticator :: json_walk :: prop: " + prop.inspect
+        Rails.logger.debug "OpenIdConnectAuthenticator :: json_walk :: path: " + path.inspect
+        
         if path.present?
             segments = path.split('.')
             val = walk_path(user_json, segments)
-            result[prop] = val if val.present?
+            if val.present?
+                result[prop] = val 
+                # return true if we've found the property in the data
+                # and the property contains any actual data
+                true
+            # otherwise return false
+            else
+                false
+            end
+        # otherwise return false
+        else
+            false
         end
     end
 
@@ -164,24 +190,63 @@ class OpenIdConnectAuthenticator < Auth::Authenticator
         Rails.logger.warn("OIDC Debugging: #{info}") if SiteSetting.oidc_debug_auth
     end
 
-    def fetch_user_details(token, id)
+    def fetch_user_details(token, id, raw_attributes)
         
         Rails.logger.debug "OpenIdConnectAuthenticator :: fetch_user_details"
         
+        # attempt getting all the details from extra.raw_attributes
+        # we should already have these anyway, so that would save us the round trip
+        # and at the same time the raw_attributes are gotten from the access_token
+        # which is signed by the server and (should be) verified by the OIDC provider
+        # 
+        # this, of course, assumes access_token and userinfo have the same data for the same keys
+        # (if the same key exists in both)... so, caveat emptor!
+        
+        result = {}
+        props = [ :user_id, :username, :name, :email, :groups ]
+        
+        Rails.logger.debug "OpenIdConnectAuthenticator :: fetch_user_details :: raw_attributes"
+        props.dup.each do |prop|
+            if json_walk(result, raw_attributes, prop)
+                Rails.logger.debug "OpenIdConnectAuthenticator :: fetch_user_details :: raw_attributes :: " + prop.inspect + " found"
+                props.delete_at(props.index(prop))
+            else
+                Rails.logger.debug "OpenIdConnectAuthenticator :: fetch_user_details :: raw_attributes :: " + prop.inspect + " not found"
+            end
+        end
+        
+        # if props array is empty, we're done here
+        if props.empty?
+            Rails.logger.debug "OpenIdConnectAuthenticator :: fetch_user_details :: props empty, we're done"
+            return result
+        end
+        
+        # ok, we need to do the round trip
+        Rails.logger.debug "OpenIdConnectAuthenticator :: fetch_user_details :: user_info"
         user_json_url = SiteSetting.oidc_user_json_url.sub(':token', token.to_s).sub(':id', id.to_s)
 
         log("user_json_url: #{user_json_url}")
-
+        Rails.logger.debug "OpenIdConnectAuthenticator :: fetch_user_details :: user_info :: fetching"
         user_json = JSON.parse(open(user_json_url, 'Authorization' => "Bearer #{token}" ).read)
 
         log("user_json: #{user_json}")
-
-        result = {}
+        
+        # did we get anything?
         if user_json.present?
-            json_walk(result, user_json, :user_id)
-            json_walk(result, user_json, :username)
-            json_walk(result, user_json, :name)
-            json_walk(result, user_json, :email)
+            Rails.logger.debug "OpenIdConnectAuthenticator :: fetch_user_details :: user_info :: user_json non-empty"
+            props.dup.each do |prop|
+                if json_walk(result, user_json, prop)
+                    Rails.logger.debug "OpenIdConnectAuthenticator :: fetch_user_details :: user_info :: " + prop.inspect + " found"
+                    props.delete_at(props.index(prop))
+                else
+                    Rails.logger.debug "OpenIdConnectAuthenticator :: fetch_user_details :: user_info :: " + prop.inspect + " not found"
+                end
+            end
+        end
+        
+        # props array should be empty now, let's make sure
+        if not props.empty?
+            Rails.logger.debug "OpenIdConnectAuthenticator :: fetch_user_details :: props still not empty: " + props.inspect
         end
 
         result
@@ -194,7 +259,7 @@ class OpenIdConnectAuthenticator < Auth::Authenticator
         
         result = Auth::Result.new
         token = auth['credentials']['token']
-        user_details = fetch_user_details(token, auth['info'][:id])
+        user_details = fetch_user_details(token, auth['info'][:id], auth['extra']['raw_attributes'])
 
         result.name = user_details[:name]
         result.username = user_details[:username]
