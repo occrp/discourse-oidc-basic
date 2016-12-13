@@ -23,3 +23,6 @@ login:
   oidc_button_title:
     default: 'with OpenID Connect'
     client: true
+  oidc_button_message:
+    default: "Sign-in with OpenID Connect"
+    client: true

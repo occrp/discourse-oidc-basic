@@ -1,12 +1,17 @@
 # name: discourse-oidc-basic
 # about: Generic OpenID Connect Plugin
 # version: 0.1
-# authors: Michał "rysiek" Woźniak
+# authors: Michał "rysiek" Woźniak <rysiek@occrp.org>
 
-#require_dependency 'auth/oauth2_authenticator.rb'
+
+#
+# reading materials:
+# https://meta.discourse.org/t/beginners-guide-to-creating-discourse-plugins/30515
+# https://github.com/omniauth/omniauth/wiki/managing-multiple-providers
+# http://www.rubydoc.info/github/discourse/discourse/Discourse
+#
 
 enabled_site_setting :oidc_enabled
-
 
 # class ::OmniAuth::Strategies::OpenIDConnectBasic < ::OmniAuth::Strategies::OpenIDConnect
 #     option :name, "openid_connect"
@@ -124,26 +129,6 @@ class OpenIdConnectAuthenticator < Auth::Authenticator
                     redirect_uri: 'https://' + Discourse.current_hostname + Discourse.base_uri + "/auth/openid_connect/callback"
                 })
             }
-        
-        
-#             name: 'openid_connect',
-#             response_type: :code,
-#             scope: [:openid, :email, :profile, :address],
-#             client_options: lambda { |env|
-#                 opts = env['omniauth.strategy'].options
-#                 opts[:port] = 443
-#                 opts[:scheme] = "https"
-#                 opts[:identifier] = SiteSetting.oidc_client_id
-#                 opts[:secret] = SiteSetting.oidc_client_secret
-#                 opts[:discovery] = true
-#                 opts[:issuer] = SiteSetting.oidc_issuer_url
-#                 #opts[:authorize_options] = SiteSetting.oidc_authorize_options.split("|").map(&:to_sym)
-# 
-#                 #if SiteSetting.oidc_send_auth_header?
-#                 #    opts[:token_params] = {headers: {'Authorization' => basic_auth_header }}
-#                 #end
-#             }
-#         }
             
         Rails.logger.debug "OpenIdConnectAuthenticator :: register_middleware :: done!"
     end
@@ -239,12 +224,13 @@ class OpenIdConnectAuthenticator < Auth::Authenticator
     end
 end
 
-auth_provider title_setting: "oidc_button_title",
-                title: "OIDC",
+auth_provider title: "OpenID Connect",
+                title_setting: "oidc_button_title",
+                message: "OpenID Connect",
+                message_setting: "oidc_button_message",
                 background_color: "#f8931d",
                 enabled_setting: "oidc_enabled",
                 authenticator: OpenIdConnectAuthenticator.new('openid_connect'),
-                message: "OpenID Connect",
                 frame_width: 920,
                 frame_height: 800
 

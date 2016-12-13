@@ -17,4 +17,5 @@ en:
     oidc_send_auth_header: "Send the token as an HTTP Authorization header"
     oidc_debug_auth: "Include rich debugging information in your logs"
     oidc_authorize_options: "When authorizing request these options (scope)"
-
+    oidc_button_title: "Text to display on the button letting users sign-in with this OIDC provider"
+    oidc_button_message: "Text to display on mouse-over of the button letting users sign-in with this OIDC provider"
