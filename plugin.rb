@@ -3,6 +3,7 @@
 # version: 0.1
 # authors: Michał "rysiek" Woźniak <rysiek@occrp.org>
 
+enabled_site_setting :oidc_enabled
 
 #
 # reading materials:
@@ -10,8 +11,6 @@
 # https://github.com/omniauth/omniauth/wiki/managing-multiple-providers
 # http://www.rubydoc.info/github/discourse/discourse/Discourse
 #
-
-enabled_site_setting :oidc_enabled
 
 # class ::OmniAuth::Strategies::OpenIDConnectBasic < ::OmniAuth::Strategies::OpenIDConnect
 #     option :name, "openid_connect"
