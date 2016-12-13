@@ -7,22 +7,37 @@
 
 enabled_site_setting :oidc_enabled
 
+
+# class ::OmniAuth::Strategies::OpenIDConnectBasic < ::OmniAuth::Strategies::OpenIDConnect
+#     option :name, "openid_connect"
+#     info do
+#         {
+#             id: access_token['id']
+#         }
+#     end
+# end
+
+
 # based on:
 # https://github.com/discourse/discourse/blob/master/lib/auth/open_id_authenticator.rb
 # original code on GNU GPL v.2
-class Auth::OpenIdConnectAuthenticator < Auth::Authenticator
+class OpenIdConnectAuthenticator < Auth::Authenticator
 
-    attr_reader :name, :identifier
+    attr_reader :identifier
 
-    def initialize(name, identifier, opts = {})
-        @name = name
+    def name
+        'openid_connect'
+    end
+
+    def initialize(identifier, opts = {})
+        #@name = name
         @identifier = identifier
         @opts = opts
     end
 
     def after_authenticate(auth_token)
         
-        Rails.logger.debug "Auth::OpenIdConnectAuthenticator :: after_authenticate"
+        Rails.logger.debug "OpenIdConnectAuthenticator :: after_authenticate"
         
         result = Auth::Result.new
 
@@ -58,7 +73,7 @@ class Auth::OpenIdConnectAuthenticator < Auth::Authenticator
 
     def after_create_account(user, auth)
         
-        Rails.logger.debug "Auth::OpenIdConnectAuthenticator :: after_create_account"
+        Rails.logger.debug "OpenIdConnectAuthenticator :: after_create_account"
         
         data = auth[:extra_data]
         UserOpenId.create(
@@ -73,62 +88,73 @@ class Auth::OpenIdConnectAuthenticator < Auth::Authenticator
 
     def register_middleware(omniauth)
         
-        Rails.logger.debug "Auth::OpenIdConnectAuthenticator :: register_middleware"
+        Rails.logger.debug "OpenIdConnectAuthenticator :: register_middleware"
         
+#         omniauth.provider :openid_connect,
+#                       :setup => lambda { |env|
+#                             strategy = env["omniauth.strategy"]
+#                             strategy.options[:store] = OpenID::Store::Redis.new($redis)
+#                       },
+#                       :name => name,
+#                       :identifier => identifier,
+#                       :require => "omniauth-openid-connect"
+        
+        Rails.logger.debug "\n\n* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *"
+        Rails.logger.debug Discourse.current_hostname
+        Rails.logger.debug Discourse.base_url
+        Rails.logger.debug Discourse.base_url_no_prefix
+        Rails.logger.debug Discourse.base_uri
+        Rails.logger.debug "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n\n"
+
         omniauth.provider :openid_connect,
-                      :setup => lambda { |env|
-                            strategy = env["omniauth.strategy"]
-                            strategy.options[:store] = OpenID::Store::Redis.new($redis)
-                      },
-                      :name => name,
-                      :identifier => identifier,
-                      :require => "omniauth-openid-connect"
-    end
-end
-
-
-class ::OmniAuth::Strategies::OpenIDConnectBasic < ::OmniAuth::Strategies::OpenIDConnect
-    option :name, "oidc_basic"
-    info do
-        {
-            id: access_token['id']
-        }
-    end
-end
-
-class OpenIDConnectBasicAuthenticator < ::Auth::OpenIdConnectAuthenticator
-    
-    def register_middleware(omniauth)
-        
-        Rails.logger.debug "OpenIDConnectBasicAuthenticator :: register_middleware"
-        
-        omniauth.provider :openid_connect,
-            name: 'oidc_basic',
-            response_type: :code,
-            scope: [:openid, :email, :profile, :address],
-            client_options: lambda {|env|
-                opts = env['omniauth.strategy'].options
-                opts[:port] = 443
-                opts[:scheme] = "https"
-                opts[:identifier] = SiteSetting.oidc_client_id
-                opts[:secret] = SiteSetting.oidc_client_secret
-                opts[:discovery] = true
-                opts[:issuer] = SiteSetting.oidc_issuer_url
-                #opts[:authorize_options] = SiteSetting.oidc_authorize_options.split("|").map(&:to_sym)
-
-                #if SiteSetting.oidc_send_auth_header?
-                #    opts[:token_params] = {headers: {'Authorization' => basic_auth_header }}
-                #end
+            name: "openid_connect",
+            identifier: "openid_connect",
+            setup:   -> (env) {
+                env["omniauth.strategy"].options.merge!(
+                scope: [:openid, :email, :profile, :address],
+                response_type: :code,
+                discovery: true,
+                issuer: SiteSetting.oidc_issuer_url,
+                client_options: {
+                    port: 443,
+                    scheme: "https",
+                    host: SiteSetting.oidc_issuer_host,
+                    identifier: SiteSetting.oidc_client_id,
+                    secret: SiteSetting.oidc_client_secret,
+                    redirect_uri: 'https://' + Discourse.current_hostname + Discourse.base_uri + "/auth/openid_connect/callback"
+                })
             }
+        
+        
+#             name: 'openid_connect',
+#             response_type: :code,
+#             scope: [:openid, :email, :profile, :address],
+#             client_options: lambda { |env|
+#                 opts = env['omniauth.strategy'].options
+#                 opts[:port] = 443
+#                 opts[:scheme] = "https"
+#                 opts[:identifier] = SiteSetting.oidc_client_id
+#                 opts[:secret] = SiteSetting.oidc_client_secret
+#                 opts[:discovery] = true
+#                 opts[:issuer] = SiteSetting.oidc_issuer_url
+#                 #opts[:authorize_options] = SiteSetting.oidc_authorize_options.split("|").map(&:to_sym)
+# 
+#                 #if SiteSetting.oidc_send_auth_header?
+#                 #    opts[:token_params] = {headers: {'Authorization' => basic_auth_header }}
+#                 #end
+#             }
+#         }
+            
+        Rails.logger.debug "OpenIdConnectAuthenticator :: register_middleware :: done!"
     end
-
+    
     #def basic_auth_header
     #    "Basic " + Base64.strict_encode64("#{SiteSetting.oidc_client_id}:#{SiteSetting.oidc_client_secret}")
     #end
 
     def walk_path(fragment, segments)
         
-        Rails.logger.debug "OpenIDConnectBasicAuthenticator :: walk_path"
+        Rails.logger.debug "OpenIdConnectAuthenticator :: walk_path"
         
         first_seg = segments[0]
         return if first_seg.blank? || fragment.blank?
@@ -140,7 +166,7 @@ class OpenIDConnectBasicAuthenticator < ::Auth::OpenIdConnectAuthenticator
 
     def json_walk(result, user_json, prop)
         
-        Rails.logger.debug "OpenIDConnectBasicAuthenticator :: json_walk"
+        Rails.logger.debug "OpenIdConnectAuthenticator :: json_walk"
         
         path = SiteSetting.send("oidc_json_#{prop}_path")
         if path.present?
@@ -156,7 +182,7 @@ class OpenIDConnectBasicAuthenticator < ::Auth::OpenIdConnectAuthenticator
 
     def fetch_user_details(token, id)
         
-        Rails.logger.debug "OpenIDConnectBasicAuthenticator :: fetch_user_details"
+        Rails.logger.debug "OpenIdConnectAuthenticator :: fetch_user_details"
         
         user_json_url = SiteSetting.oidc_user_json_url.sub(':token', token.to_s).sub(':id', id.to_s)
 
@@ -180,7 +206,7 @@ class OpenIDConnectBasicAuthenticator < ::Auth::OpenIdConnectAuthenticator
     def after_authenticate(auth)
         log("after_authenticate response: \n\ncreds: #{auth['credentials'].to_hash}\ninfo: #{auth['info'].to_hash}\nextra: #{auth['extra'].to_hash}")
 
-        Rails.logger.debug "OpenIDConnectBasicAuthenticator :: after_authenticate"
+        Rails.logger.debug "OpenIdConnectAuthenticator :: after_authenticate"
         
         result = Auth::Result.new
         token = auth['credentials']['token']
@@ -191,13 +217,13 @@ class OpenIDConnectBasicAuthenticator < ::Auth::OpenIdConnectAuthenticator
         result.email = user_details[:email]
         result.email_valid = result.email.present? && SiteSetting.oidc_email_verified?
 
-        current_info = ::PluginStore.get("oidc_basic", "oidc_basic_user_#{user_details[:user_id]}")
+        current_info = ::PluginStore.get("openid_connect", "oidc_basic_user_#{user_details[:user_id]}")
         if current_info
             result.user = User.where(id: current_info[:user_id]).first
         elsif SiteSetting.oidc_email_verified?
             result.user = User.where(email: Email.downcase(result.email)).first
             if result.user && user_details[:user_id]
-                ::PluginStore.set("oidc_basic", "oidc_basic_user_#{user_details[:user_id]}", {user_id: result.user.id})
+                ::PluginStore.set("openid_connect", "oidc_basic_user_#{user_details[:user_id]}", {user_id: result.user.id})
             end
         end
 
@@ -207,20 +233,26 @@ class OpenIDConnectBasicAuthenticator < ::Auth::OpenIdConnectAuthenticator
 
     def after_create_account(user, auth)
         
-        Rails.logger.debug "OpenIDConnectBasicAuthenticator :: after_create_account"
+        Rails.logger.debug "OpenIdConnectAuthenticator :: after_create_account"
         
-        ::PluginStore.set("oidc_basic", "oidc_basic_user_#{auth[:extra_data][:oidc_basic_user_id]}", {user_id: user.id })
+        ::PluginStore.set("openid_connect", "oidc_basic_user_#{auth[:extra_data][:oidc_basic_user_id]}", {user_id: user.id })
     end
 end
 
 auth_provider title_setting: "oidc_button_title",
-                            enabled_setting: "oidc_enabled",
-                            authenticator: OpenIDConnectBasicAuthenticator.new('oidc_basic', 'OpenIDConnectBasic'),
-                            message: "OpenID Connect"
+                title: "OIDC",
+                background_color: "#f8931d",
+                enabled_setting: "oidc_enabled",
+                authenticator: OpenIdConnectAuthenticator.new('openid_connect'),
+                message: "OpenID Connect",
+                frame_width: 920,
+                frame_height: 800
+
+#raise aproviders.inspect + "\n\n\n" + aproviders.instance_variable_get(:@authenticator).inspect
 
 register_css <<CSS
 
-    button.btn-social.oidc_basic {
+    button.btn-social.openid_connect {
         background-color: #f8931d;
     }
 
