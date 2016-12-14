@@ -1,3 +1,20 @@
+# discourse-oidc-basic
+
+## ToDo
+
+ - proper readme and documentation
+ - move to using [OpenIdUser](https://github.com/discourse/discourse/blob/master/app/models/user_open_id.rb) perhaps
+ - OIDC groups config:
+   - prefix
+   - auto add prefix
+ - OIDC endpoints config:
+   - how should `client_options.port`, `client_options.host`, `client_options.scheme`, and others relate to `issuer` (with/without `discover`)?
+
+
+## DEPRECATED DOCS BELOW
+
+--------------------------
+
 ## discourse-oauth2-basic
 
 This plugin allows you to use a basic OAuth2 provider as authentication for
