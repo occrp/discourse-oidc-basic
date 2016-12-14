@@ -26,3 +26,5 @@ login:
   oidc_button_message:
     default: "Sign-in with OpenID Connect"
     client: true
+  oidc_groups_strict: false
+  oidc_groups_auto_create: false

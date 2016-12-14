@@ -19,3 +19,5 @@ en:
     oidc_authorize_options: "When authorizing request these options (scope)"
     oidc_button_title: "Text to display on the button letting users sign-in with this OIDC provider"
     oidc_button_message: "Text to display on mouse-over of the button letting users sign-in with this OIDC provider"
+    oidc_groups_strict: "If enabled, users will only be in groups they are indicated to be in by OIDC (as found at :oidc_json_groups_path in token/user info)"
+    oidc_groups_auto_create: "When enabled, groups a user is indicated by the OIDC to be in will be created in Discourse, if missing"
