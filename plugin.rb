@@ -176,6 +176,8 @@ class OpenIdConnectAuthenticator < Auth::Authenticator
 
         log("user_json_url: #{user_json_url}")
         log "fetch_user_details :: user_info :: fetching"
+        # WARNING: if user json url is not set, it will fail with a 500
+        # BUG TODO
         user_json = JSON.parse(open(user_json_url, 'Authorization' => "Bearer #{token}" ).read)
 
         log("user_json: #{user_json}")
@@ -309,6 +311,9 @@ class OpenIdConnectAuthenticator < Auth::Authenticator
     def handle_groups(user, groups)
 
         log "handle_groups: " + user.email + " :: " + groups.inspect
+        if groups.nil?
+            groups = []
+        end
 
         # add user to groups
         groups.each do |group_name|
