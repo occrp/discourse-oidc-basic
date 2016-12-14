@@ -1,5 +1,7 @@
 # discourse-oidc-basic
 
+Uses [`omniauth-openid-connect`](https://github.com/jjbohn/omniauth-openid-connect/); tested with [Keycloak SSO](http://www.keycloak.org/).
+
 ## ToDo
 
  - proper readme and documentation
